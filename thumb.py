@@ -30,7 +30,7 @@ class Thumbnailler:
         self.use_wdir=use_wdir
         self.debug=debug
 
-    def run(self, inname, outname=None, rsize=96):
+    def run(self, inname, outname=None, rsize=96, jpeg=False):
         """Generate the thumbnail from the file
         inname - source file
         outname - path to store thumbnail image
@@ -55,7 +55,7 @@ class Thumbnailler:
             ow=img.get_width()
             oh=img.get_height()        
             img=self.process_image(img, rsize)
-            self.store_image(img, inname, outname, ow, oh)
+            self.store_image(img, inname, outname, ow, oh, jpeg)
         except:
             self.report_exception()
 
@@ -92,18 +92,23 @@ class Thumbnailler:
         The default implementation just returns the image unchanged."""
         return img
 
-    def store_image(self, img, inname, outname, ow, oh):
+    def store_image(self, img, inname, outname, ow, oh, jpeg):
         """Store the thumbnail image it the correct location, adding
         the extra data required by the thumbnail spec."""
         s=os.stat(inname)
 
-        img.save(outname+self.fname, 'png',
-             {'tEXt::Thumb::Image::Width': str(ow),
-              'tEXt::Thumb::Image::Height': str(oh),
-              "tEXt::Thumb::Size": str(s.st_size),
-              "tEXt::Thumb::MTime": str(s.st_mtime),
-              'tEXt::Thumb::URI': rox.escape('file://'+inname),
-              'tEXt::Software': self.name})
+        if jpeg:
+            img.save(outname+self.fname, 'jpeg',
+                 {'quality': '77'})
+        else:
+            img.save(outname+self.fname, 'png',
+                 {'tEXt::Thumb::Image::Width': str(ow),
+                  'tEXt::Thumb::Image::Height': str(oh),
+                  "tEXt::Thumb::Size": str(s.st_size),
+                  "tEXt::Thumb::MTime": str(s.st_mtime),
+                  'tEXt::Thumb::URI': rox.escape('file://'+inname),
+                  'tEXt::Software': self.name})
+
         os.rename(outname+self.fname, outname)
         
     def make_working_dir(self):

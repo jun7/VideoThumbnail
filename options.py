@@ -15,6 +15,7 @@ import manage
 
 rox.setup_app_options('VideoThumbnail', site='kerofin.demon.co.uk')
 
+jpegformat=rox.options.Option('jpeg', 0)
 tsize=rox.options.Option('tsize', 128)
 sprocket=rox.options.Option('sprocket', 1)
 ssize=rox.options.Option('ssize', 8)

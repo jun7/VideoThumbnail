@@ -9,14 +9,17 @@
     <radio-group name='generator'>
       <radio value='totem' label='Totem'>Use Totem to generate video thumbnails</radio>
       <radio value='mplayer' label='MPlayer'>Use MPlayer to generate video thumbnails</radio>
+      <radio value='ffmpeg' label='FFmpeg'>Use FFmpeg to generate video thumbnails</radio>
+      <radio value='mpv' label='mpv'>Use mpv to generate video thumbnails</radio>
     </radio-group>
     </frame>
+    <toggle name='jpeg' label='Use Jpeg format'></toggle>
     <numentry name='tsize' label='Thumbnail size' min='16' max='256'>
       Size of the generated thumbnails (normally overriden by the filer).
     </numentry>
     <toggle name='report' label='Report errors'>If selected report any error that occurs, rather than ignoring it. Only useful if you are debugging.</toggle>
   </section>
-  <section title="MPlayer options">
+  <section title="MPlayer, FFmpeg and mpv options">
     <toggle name='sprocket' label='Draw sprocket effect'>If selected, draw the film sprocket effect on the sides</toggle>
     <numentry name='ssize' label='Sprocket size' min='4' max='16'>
       Size of the sprocket effect.

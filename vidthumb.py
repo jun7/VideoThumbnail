@@ -58,12 +58,14 @@ def execute_return_err(cmd):
         return errmsg
         
 debug=os.environ.get('VIDTHUMB_DEBUG', 0)
+#debug=True
+if debug: print "debug is on"
 
-class VidThumbNail(rox.thumbnail.Thumbnailer):
+class VidThumbNail(thumb.Thumbnailler):
     """Generate thumbnail for video files understood by totem"""
     def __init__(self, debug=False):
         """Initialize Video thumbnailer"""
-        rox.thumbnail.Thumbnailer.__init__(self, 'VideoThumbnail', 'vidthumb',
+        thumb.Thumbnailler.__init__(self, 'VideoThumbnail', 'vidthumb',
                                     True, debug)
 
     def failed_image(self, rsize, tstr):
@@ -292,8 +294,95 @@ class VidThumbMPlayer(VidThumbNail):
 
         return rox.g.gdk.pixbuf_new_from_file(frfname)
 
+
+class VidThumbFfmpeg(VidThumbMPlayer):
+    """Generate thumbnail for video files understood by FFmpeg"""
+    _binary = "ffmpeg"
+    def __init__(self, debug=False):
+        """Initialize Video thumbnailler"""
+        VidThumbMPlayer.__init__(self, debug)
+
+    def get_length(self, fname):
+        """Get the length in seconds of the source. """
+        unused, inf, junk=os.popen3(
+            #ffprobe is a part of ffmpeg
+            'ffprobe -i "%s" -show_entries format=duration -v quiet -of csv="p=0"' % fname, 'r')
+
+        for l in inf.readlines():
+            if l[:3]=='N/A':
+                return 0.0
+            return float(l)
+
+        return 0.
+
+    def write_frame(self, fname, pos):
+        cmd='ffmpeg -hwaccel auto -i "%s" -ss %f -vframes 1 out.tiff' % (fname, pos)
+        cmd+=' > /dev/null 2>&1'
+        os.system(cmd)
+
+        ofile='out.tiff'
+        try:
+            os.stat(ofile)
+        except:
+            return None
+        return ofile
+
+    def get_image(self, inname, rsize):
+        try:
+            vlen=self.get_length(inname)
+        except:
+            self.report_exception()
+            return self.failed_image(rsize, _('Bad length'))
+        os.wait()
+
+        self.total_time=vlen
+        if debug: print vlen
+
+        pos=vlen*0.066
+        if pos>60:
+            pos=60
+
+        frfname=self.write_frame(inname, pos)
+        if debug: print inname, pos, frfname
+        if frfname is None:
+            frfname=self.write_frame(inname, 0)
+            if debug: print inname, pos, frfname
+
+        if frfname is None:
+            try:
+                raise _('Bad or missing frame file')
+            except:
+                self.report_exception()
+            #return self.failed_image(rsize, _('Bad or missing frame file'))
+            return None
+
+        return rox.g.gdk.pixbuf_new_from_file(frfname)
+
+class VidThumbMpv(VidThumbFfmpeg):
+    """Generate thumbnail for video files understood by mpv"""
+    _binary = "mpv"
+    def __init__(self, debug=False):
+        """Initialize Video thumbnailler"""
+        VidThumbFfmpeg.__init__(self, debug)
+
+    def write_frame(self, fname, pos):
+        cmd='mpv --no-config --really-quiet --no-terminal --no-sub --no-audio'
+        cmd+=' --vo=image:format=png,png-compression=0,png-filter=0'
+        cmd+=' --start %f --frames 1 "%s"' % (pos, fname)
+        cmd+=' > /dev/null 2>&1'
+        os.system(cmd)
+
+        ofile='00000001.png'
+        try:
+            os.stat(ofile)
+        except:
+            return None
+        return ofile
+
 thumbnailers = {"mplayer": VidThumbMPlayer,
-                "totem" : VidThumbTotem }
+                "totem" : VidThumbTotem,
+                "ffmpeg" : VidThumbFfmpeg,
+                "mpv" : VidThumbMpv}
 
 def get_generator(debug=None):
     """Return the current generator of thumbnails"""
@@ -363,7 +452,7 @@ def main(argv):
     #print inname, outname, rsize
 
     thumb=get_generator()
-    thumb.run(inname, outname, rsize)
+    thumb.run(inname, outname, rsize, options.jpegformat.int_value)
 
         
 def configure():
