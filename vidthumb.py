@@ -339,8 +339,8 @@ class VidThumbFfmpeg(VidThumbMPlayer):
         if debug: print vlen
 
         pos=vlen*0.066
-        if pos>60:
-            pos=60
+        if pos>11:
+            pos=11
 
         frfname=self.write_frame(inname, pos)
         if debug: print inname, pos, frfname
