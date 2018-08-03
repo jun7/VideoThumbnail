@@ -379,9 +379,27 @@ class VidThumbMpv(VidThumbFfmpeg):
             return None
         return ofile
 
+class VidThumbFfmpegT(VidThumbNail):
+    """Generate thumbnail for video files understood by ffmpegthumbnailer"""
+    _binary = "ffmpegthumbnailer"
+    def __init__(self, debug=False):
+        """Initialize Video thumbnailler"""
+        VidThumbNail.__init__(self, debug)
+
+    def get_image(self, inname, rsize):
+        outfile = os.path.join(self.work_dir, "out.png")
+        cmd = 'ffmpegthumbnailer -i "%s" -o "%s" -s %d' % (inname, outfile, rsize)
+        errmsg=execute_return_err(cmd)
+        if not os.path.exists(outfile):
+            return self.failed_image(rsize, errmsg)
+
+        # Now we load the raw image in
+        return rox.g.gdk.pixbuf_new_from_file(outfile)
+
 thumbnailers = {"mplayer": VidThumbMPlayer,
                 "totem" : VidThumbTotem,
                 "ffmpeg" : VidThumbFfmpeg,
+                "ffmpegt" : VidThumbFfmpegT,
                 "mpv" : VidThumbMpv}
 
 def get_generator(debug=None):

@@ -10,6 +10,7 @@
       <radio value='totem' label='Totem'>Use Totem to generate video thumbnails</radio>
       <radio value='mplayer' label='MPlayer'>Use MPlayer to generate video thumbnails</radio>
       <radio value='ffmpeg' label='FFmpeg'>Use FFmpeg to generate video thumbnails</radio>
+      <radio value='ffmpegt' label='ffmpegthumbnailer'>Use ffmpegthumbnailer to generate video thumbnails</radio>
       <radio value='mpv' label='mpv'>Use mpv to generate video thumbnails</radio>
     </radio-group>
     </frame>
